@@ -127,7 +127,11 @@ class Board(_WekanObject):
 
         return List(self._api, self.id, list_id)
 
-    def get_list_by_title(self, list_title) -> List:
+    def get_list_by_title(self, list_title: str) -> List:
+        """
+        Retrieve a list by it's title from current board.
+        :param list_title: Wanted board's title.
+        """
         lists = self.get_lists()
         wanted_lists = list(filter(lambda l: l.title == list_title, lists))
 
@@ -159,6 +163,9 @@ class Board(_WekanObject):
         return self._api.delete(f"/api/boards/{self.id}/lists/{list_id}")
 
     def get_admin_users(self) -> [User]:
+        """
+        Retrieve all board's users that are admins.
+        """
         admins = [member.user for member in self.members if member.is_board_admin]
 
         if len(admins) <= 0:
@@ -167,6 +174,10 @@ class Board(_WekanObject):
         return admins
 
     def add_swimlane(self, title: str) -> Swimlane:
+        """
+        Adds a new swimlane to current board.
+        :param title: New swimlane's name.
+        """
         swimlane_data = {
             "title": title,
         }
@@ -175,6 +186,9 @@ class Board(_WekanObject):
         return Swimlane(self._api, self.id, new_swimlane['_id'])
 
     def get_swimlanes(self) -> [Swimlane]:
+        """
+        Retrieve all swimlanes on current board.
+        """
         data = self._api.get(f"/api/boards/{self.id}/swimlanes")
         swimlanes = [Swimlane(self._api, self.id, swimlane.get('_id')) for swimlane in data]
 
@@ -184,6 +198,10 @@ class Board(_WekanObject):
         return swimlanes
 
     def get_swimlane_by_title(self, title: str) -> Swimlane:
+        """
+        Retrieve a swimlane by its title from current board.
+        :param title: wanted swimlane's title.
+        """
         swimlanes = list(filter(lambda s: s.title == title, self.get_swimlanes()))
 
         if len(swimlanes) <= 0:
