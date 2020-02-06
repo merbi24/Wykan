@@ -1,6 +1,38 @@
+from wykan.models.swimlane import Swimlane
+from wykan.models.user import User
 from wykan.models.list import List
 from . import _WekanObject
 from .colors import Colors, BoardColors
+
+
+class BoardLabel:
+    """
+    A board label.
+    """
+
+    def __init__(self, id: str, name: str, color: BoardColors):
+        self.id = id
+        self.name = name
+        self.color = color
+
+
+class BoardMember:
+    """
+    A board member.
+    """
+
+    def __init__(self, user, is_board_admin: bool, is_no_comments: bool, is_comment_only: bool):
+        """
+        :param user: A Wekan user.
+        :param is_board_admin: Can view and edit cards, remove members, and change settings for the board.
+        :param is_no_comments: Can not see comments and activities.
+        :param is_comment_only: Can comment on cards only.
+        """
+
+        self.user = user
+        self.is_board_admin = is_board_admin
+        self.is_no_comment = is_no_comments
+        self.is_comment_only = is_comment_only
 
 
 class Board(_WekanObject):
@@ -95,6 +127,15 @@ class Board(_WekanObject):
 
         return List(self._api, self.id, list_id)
 
+    def get_list_by_title(self, list_title) -> List:
+        lists = self.get_lists()
+        wanted_lists = list(filter(lambda l: l.title == list_title, lists))
+
+        if len(wanted_lists) <= 0:
+            raise NameError("Could not find list {}".format(list_title))
+
+        return wanted_lists[0]
+
     def create_list(self, title: str) -> List:
         """
         Add a list to the board.
@@ -117,32 +158,35 @@ class Board(_WekanObject):
 
         return self._api.delete(f"/api/boards/{self.id}/lists/{list_id}")
 
+    def get_admin_users(self) -> [User]:
+        admins = [member.user for member in self.members if member.is_board_admin]
 
-class BoardLabel:
-    """
-    A board label.
-    """
+        if len(admins) <= 0:
+            raise LookupError(f"Could not find admin users for board {self.title}")
 
-    def __init__(self, id: str, name: str, color: BoardColors):
-        self.id = id
-        self.name = name
-        self.color = color
+        return admins
 
+    def add_swimlane(self, title: str) -> Swimlane:
+        swimlane_data = {
+            "title": title,
+        }
 
-class BoardMember:
-    """
-    A board member.
-    """
+        new_swimlane = self._api.post(f"/api/boards/{self.id}/swimlanes", swimlane_data)
+        return Swimlane(self._api, self.id, new_swimlane['_id'])
 
-    def __init__(self, user, is_board_admin: bool, is_no_comments: bool, is_comment_only: bool):
-        """
-        :param user: A Wekan user.
-        :param is_board_admin: Can view and edit cards, remove members, and change settings for the board.
-        :param is_no_comments: Can not see comments and activities.
-        :param is_comment_only: Can comment on cards only.
-        """
+    def get_swimlanes(self) -> [Swimlane]:
+        data = self._api.get(f"/api/boards/{self.id}/swimlanes")
+        swimlanes = [Swimlane(self._api, self.id, swimlane.get('_id')) for swimlane in data]
 
-        self.user = user
-        self.is_board_admin = is_board_admin
-        self.is_no_comment = is_no_comments
-        self.is_comment_only = is_comment_only
+        if len(swimlanes) <= 0:
+            raise LookupError(f"Could not find swimlanes in board {self.title}")
+
+        return swimlanes
+
+    def get_swimlane_by_title(self, title: str) -> Swimlane:
+        swimlanes = list(filter(lambda s: s.title == title, self.get_swimlanes()))
+
+        if len(swimlanes) <= 0:
+            raise LookupError(f"Could not find swimlane {title}")
+
+        return swimlanes[0]

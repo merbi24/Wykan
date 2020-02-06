@@ -1,0 +1,30 @@
+!BoardConfiguration
+title: my test
+lists:
+- !ListConfiguration
+  title: TODO
+  cards:
+  - !CardConfiguration
+    title: משימה ראשונה
+    description: יש תמיכה בעברית
+  - !CardConfiguration
+    title: Task 2
+    description: this is a test
+- !ListConfiguration
+  title: IN PROGRESS
+  cards:
+  - !CardConfiguration
+    title: משימה ראשונה
+    description: יש תמיכה בעברית
+  - !CardConfiguration
+    title: Task 2
+    description: this is a test
+- !ListConfiguration
+  title: DONE
+  cards:
+  - !CardConfiguration
+    title: משימה ראשונה
+    description: יש תמיכה בעברית
+  - !CardConfiguration
+    title: Task 2
+    description: this is a test

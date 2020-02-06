@@ -1,6 +1,7 @@
 import requests
 from requests.exceptions import HTTPError
 
+from wykan.board_configuration import BoardConfiguration, ListConfiguration, CardConfiguration
 from .exceptions import WekanException
 from .models.board import Board
 from .models.user import User
@@ -94,6 +95,15 @@ class Wykan:
         user_boards = self.get(f"/api/users/{user_id}/boards")
         return [self.get_board(user_board["_id"]) for user_board in user_boards]
 
+    def get_board_by_title(self, user_id: str, title: str) -> Board:
+        boards = self.get_user_boards(user_id)
+
+        found_boards = list(filter(lambda board: board.title == title, boards))
+        if len(boards) <= 0:
+            raise LookupError(f"Could not find board {board_name}")
+
+        return found_boards[0]
+
     def delete_board(self, board_id: str):
         """
         Delete a board.
@@ -128,6 +138,37 @@ class Wykan:
 
         new_board = self.post("/api/boards", new_board_details)
         return self.get_board(new_board["_id"])
+
+    def create_board_from_configuration(self, config: BoardConfiguration, owner_id: str, **kwargs) -> Board:
+        board = self.create_board(config.title, owner_id, **kwargs)
+
+        for l in config.lists:
+            new_list = board.create_list(l.title)
+
+            for card in l.cards:
+                new_list.create_card(card.title, card.description)
+
+        return board
+
+    def duplicate_board(self, source_board: Board, new_title: str) -> Board:
+        lists = []
+
+        try:
+            for l in source_board.get_lists():
+                cards = []
+
+                try:
+                    for card in l.get_cards():
+                        cards.append(CardConfiguration(card.title, card.description))
+
+                except LookupError:
+                    pass
+
+                lists.append(ListConfiguration(l.title, cards))
+        except LookupError:
+            pass
+
+        return self.create_board_from_configuration(BoardConfiguration(new_title, lists), source_board.get_admin_users()[0].id)
 
     def get_board(self, id) -> Board:
         """
