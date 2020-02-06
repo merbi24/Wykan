@@ -1,6 +1,6 @@
+from wykan.models.list import List
 from wykan.models.swimlane import Swimlane
 from wykan.models.user import User
-from wykan.models.list import List
 from . import _WekanObject
 from .colors import Colors, BoardColors
 

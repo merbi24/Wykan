@@ -2,7 +2,6 @@ import yaml
 
 from wykan import Wykan
 
-
 if __name__ == '__main__':
     with open("example_config.yml", "rb") as fd:
         config = yaml.load(fd)
