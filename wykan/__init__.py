@@ -117,6 +117,15 @@ class Wykan:
 
         self.delete(f"/api/boards/{board_id}")
 
+    def delete_board_by_title(self, user_id: str, title: str):
+        """
+        Deletes a board.
+        :param user_id: ID of the user who owns the board.
+        :param title: Title of the board to delete.
+        """
+        board = self.get_board_by_title(user_id, title)
+        self.delete_board(board.id)
+
     def create_board(self, title: str, owner_id: str, **kwargs) -> Board:
         """
         Create a new board
